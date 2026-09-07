@@ -33,22 +33,34 @@ export default function Dashboard() {
     const fetchStats = async () => {
       try {
         const [propsResult, leadsResult, visitsResult] = await Promise.all([
-          getProperties({ pageSize: 100 }),
-          getLeads(),
-          getAppointments()
+          getProperties({ pageSize: 100 }).catch(err => {
+            console.warn('Aviso ao carregar imóveis para o dashboard:', err);
+            return { properties: [], lastDoc: null };
+          }),
+          getLeads().catch(err => {
+            console.warn('Aviso ao carregar leads para o dashboard:', err);
+            return [];
+          }),
+          getAppointments().catch(err => {
+            console.warn('Aviso ao carregar visitas para o dashboard:', err);
+            return [];
+          })
         ]);
 
-        const props = propsResult.properties;
+        const props = propsResult?.properties || [];
+        const leads = leadsResult || [];
+        const visits = visitsResult || [];
+
         setStats({
           totalProperties: props.length,
           availableProperties: props.filter(p => p.status === 'AVAILABLE').length,
           soldProperties: props.filter(p => p.status === 'SOLD').length,
           rentedProperties: props.filter(p => p.status === 'RENTED').length,
-          newLeads: leadsResult.filter(l => l.status === 'NEW').length,
-          upcomingVisits: visitsResult.filter(v => v.status === 'PENDING' || v.status === 'CONFIRMED').length
+          newLeads: leads.filter(l => l.status === 'NEW').length,
+          upcomingVisits: visits.filter(v => v.status === 'PENDING' || v.status === 'CONFIRMED').length
         });
       } catch (error) {
-        console.error('Erro ao buscar estatísticas:', error);
+        console.warn('Aviso ao calcular estatísticas:', error);
       } finally {
         setLoading(false);
       }

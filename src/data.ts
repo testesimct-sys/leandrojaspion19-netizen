@@ -1,4 +1,4 @@
-import { Property } from './types';
+import { Property, Lead, Appointment } from './types';
 
 export const MOCK_PROPERTIES: Property[] = [
   {
@@ -267,5 +267,108 @@ export const MOCK_PROPERTIES: Property[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     publishedAt: new Date().toISOString(),
+  }
+];
+
+export const MOCK_LEADS: Lead[] = [
+  {
+    id: 'lead-1',
+    name: 'Carlos Eduardo Silveira',
+    email: 'carlos.silveira@email.com',
+    phone: '(21) 98765-4321',
+    whatsapp: '21987654321',
+    propertyCode: 'APC001',
+    message: 'Olá! Gostaria de agendar uma visita ao apartamento da Barra da Tijuca nesta semana.',
+    source: 'SITE',
+    status: 'NEW',
+    priority: 'HIGH',
+    score: 85,
+    potentialValue: 2500000,
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'lead-2',
+    name: 'Mariana Fontes Becker',
+    email: 'mariana.becker@empresa.com.br',
+    phone: '(11) 99812-7744',
+    whatsapp: '11998127744',
+    propertyCode: 'CSA002',
+    message: 'Tenho interesse na casa no Jardim Europa. Aceita financiamento ou permuta?',
+    source: 'WHATSAPP',
+    status: 'QUALIFIED',
+    priority: 'URGENT',
+    score: 92,
+    potentialValue: 4800000,
+    createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'lead-3',
+    name: 'Rodrigo Mendonça',
+    email: 'rodrigo.mendonca@gmail.com',
+    phone: '(21) 97123-9988',
+    whatsapp: '21971239988',
+    propertyCode: 'COB003',
+    message: 'Gostaria de simular financiamento para a cobertura em Ipanema.',
+    source: 'SITE',
+    status: 'VISIT_SCHEDULED',
+    priority: 'NORMAL',
+    score: 78,
+    potentialValue: 6200000,
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'lead-4',
+    name: 'Fernanda Albuquerque',
+    email: 'fernanda.albuquerque@adv.br',
+    phone: '(31) 98455-1234',
+    whatsapp: '31984551234',
+    propertyCode: 'MAN004',
+    message: 'Gostaria de receber o memorial descritivo completo da mansão em Mangaratiba.',
+    source: 'INSTAGRAM',
+    status: 'PROPOSAL',
+    priority: 'HIGH',
+    score: 88,
+    potentialValue: 9500000,
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+];
+
+export const MOCK_APPOINTMENTS: Appointment[] = [
+  {
+    id: 'app-1',
+    propertyId: '1',
+    userId: 'client-1',
+    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    time: '14:30',
+    status: 'CONFIRMED',
+    notes: 'Cliente muito interessado na vista para o mar e vaga de garagem extra.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'app-2',
+    propertyId: '2',
+    userId: 'client-2',
+    date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+    time: '10:00',
+    status: 'PENDING',
+    notes: 'Primeira visita com a arquiteta da família.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'app-3',
+    propertyId: '3',
+    userId: 'client-3',
+    date: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+    time: '16:00',
+    status: 'PENDING',
+    notes: 'Visita no entardecer para conferir a iluminação natural da cobertura.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 ];

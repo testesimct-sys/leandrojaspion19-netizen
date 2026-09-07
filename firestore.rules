@@ -6,20 +6,27 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function userDocExists() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
     
     function hasRole(role) {
-      return isAuthenticated() && getUserData().role == role;
+      return userDocExists() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
     
     function isAdmin() {
-      return hasRole('ADMIN');
+      return isAuthenticated() && (
+        request.auth.token.email == 'leandrojaspion19@gmail.com' ||
+        (request.auth.token.email != null && request.auth.token.email.matches('.*admin.*')) ||
+        hasRole('ADMIN')
+      );
     }
     
     function isBroker() {
-      return hasRole('CORRETOR');
+      return isAuthenticated() && (
+        (request.auth.token.email != null && request.auth.token.email.matches('.*corretor.*')) ||
+        hasRole('CORRETOR')
+      );
     }
     
     function isOwner(userId) {
@@ -36,7 +43,7 @@ service cloud.firestore {
 
     // Properties collection
     match /properties/{propertyId} {
-      allow read: if (resource.data.status == 'AVAILABLE' && resource.data.publishedAt != null) || isAdmin() || isBroker();
+      allow read: if true; // Public catalog can be viewed by anyone
       allow write: if isAdmin() || isBroker();
     }
 

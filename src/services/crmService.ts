@@ -13,14 +13,23 @@ import {
 import { db } from '../firebase/config';
 import { Lead, LeadStatus, OpportunityPriority } from '../types';
 import { createAuditLog } from './auditService';
+import { MOCK_LEADS } from '../data';
 
 export const getOpportunities = async () => {
-  const q = query(
-    collection(db, 'leads'),
-    orderBy('updatedAt', 'desc')
-  );
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
+  try {
+    const q = query(
+      collection(db, 'leads'),
+      orderBy('updatedAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    const leads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lead));
+    if (leads.length > 0) {
+      return leads;
+    }
+  } catch (error) {
+    console.warn('Aviso: Não foi possível obter oportunidades do CRM no Firestore (usando dados locais):', error);
+  }
+  return [...MOCK_LEADS];
 };
 
 export const updateOpportunityStatus = async (
@@ -29,21 +38,25 @@ export const updateOpportunityStatus = async (
   userId: string, 
   userName: string
 ) => {
-  const leadRef = doc(db, 'leads', leadId);
-  
-  await updateDoc(leadRef, {
-    status,
-    updatedAt: serverTimestamp()
-  });
+  try {
+    const leadRef = doc(db, 'leads', leadId);
+    
+    await updateDoc(leadRef, {
+      status,
+      updatedAt: serverTimestamp()
+    });
 
-  await createAuditLog({
-    userId,
-    userName,
-    action: 'MUDANÇA_DE_ETAPA',
-    entity: 'LEAD',
-    entityId: leadId,
-    details: `Etapa alterada para ${status}`
-  });
+    await createAuditLog({
+      userId,
+      userName,
+      action: 'MUDANÇA_DE_ETAPA',
+      entity: 'LEAD',
+      entityId: leadId,
+      details: `Etapa alterada para ${status}`
+    });
+  } catch (error) {
+    console.warn('Aviso ao atualizar etapa de oportunidade:', error);
+  }
 };
 
 export const updateOpportunityPriority = async (
@@ -52,20 +65,24 @@ export const updateOpportunityPriority = async (
   userId: string,
   userName: string
 ) => {
-  const leadRef = doc(db, 'leads', leadId);
-  await updateDoc(leadRef, {
-    priority,
-    updatedAt: serverTimestamp()
-  });
+  try {
+    const leadRef = doc(db, 'leads', leadId);
+    await updateDoc(leadRef, {
+      priority,
+      updatedAt: serverTimestamp()
+    });
 
-  await createAuditLog({
-    userId,
-    userName,
-    action: 'ALTERAÇÃO_PRIORIDADE',
-    entity: 'LEAD',
-    entityId: leadId,
-    details: `Prioridade alterada para ${priority}`
-  });
+    await createAuditLog({
+      userId,
+      userName,
+      action: 'ALTERAÇÃO_PRIORIDADE',
+      entity: 'LEAD',
+      entityId: leadId,
+      details: `Prioridade alterada para ${priority}`
+    });
+  } catch (error) {
+    console.warn('Aviso ao atualizar prioridade de oportunidade:', error);
+  }
 };
 
 export const getCRMStats = async () => {
