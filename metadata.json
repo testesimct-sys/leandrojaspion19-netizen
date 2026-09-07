@@ -1,0 +1,6 @@
+{
+  "name": "Elite Imóveis",
+  "description": "Plataforma imobiliária de alto padrão para compra, venda e aluguel de imóveis com atendimento personalizado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

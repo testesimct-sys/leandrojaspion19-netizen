@@ -1,0 +1,35 @@
+{
+  "collections": {
+    "users": {
+      "documents": {
+        "admin_user": {
+          "id": "admin_user",
+          "name": "Administrador Elite",
+          "email": "admin@eliteimoveis.com",
+          "role": "ADMIN",
+          "active": true,
+          "createdAt": { "__type__": "timestamp", "seconds": 1725441600, "nanoseconds": 0 },
+          "updatedAt": { "__type__": "timestamp", "seconds": 1725441600, "nanoseconds": 0 }
+        }
+      }
+    },
+    "properties": {
+      "documents": {}
+    },
+    "leads": {
+      "documents": {}
+    },
+    "favorites": {
+      "documents": {}
+    },
+    "appointments": {
+      "documents": {}
+    },
+    "clients": {
+      "documents": {}
+    },
+    "interactions": {
+      "documents": {}
+    }
+  }
+}
