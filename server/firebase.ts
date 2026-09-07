@@ -1,10 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import fs from 'fs';
-import path from 'path';
-
-const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
-const firebaseConfigJson = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+import firebaseConfigJson from '../firebase-applet-config.json';
 
 const isValidConfig = (val?: string) => val && val !== '123456789' && val !== 'your-api-key';
 

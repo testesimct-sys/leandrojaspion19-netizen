@@ -4,16 +4,44 @@ import {
   MapPin, BedDouble, Bath, Square, Car, Ruler, 
   CheckCircle2, Share2, Heart, MessageCircle, 
   Calendar, Info, Phone, Mail, User, Send,
-  ChevronLeft, ChevronRight, Shield, Check
+  ChevronLeft, ChevronRight, Shield, Check, Calculator
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { createLead } from '../services/leadService';
+import { getPropertyById } from '../services/propertyService';
+import { Property } from '../types';
+import FinancingCalculator, { FinancingSimulation } from '../components/FinancingCalculator';
+import PropertyLocationMap from '../components/PropertyLocationMap';
 
 export default function PropertyDetails() {
   const { id } = useParams();
-  const property = MOCK_PROPERTIES.find(p => p.id === id);
+  const [property, setProperty] = useState<Property | null>(() => {
+    return MOCK_PROPERTIES.find(p => p.id === id) || null;
+  });
+  const [loadingProperty, setLoadingProperty] = useState(!property);
   const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    if (id) {
+      const mock = MOCK_PROPERTIES.find(p => p.id === id);
+      if (mock) {
+        setProperty(mock);
+        setLoadingProperty(false);
+      } else {
+        setLoadingProperty(true);
+        getPropertyById(id).then((data) => {
+          if (data) {
+            setProperty(data);
+          }
+          setLoadingProperty(false);
+        }).catch((err) => {
+          console.warn('Erro ao carregar imóvel:', err);
+          setLoadingProperty(false);
+        });
+      }
+    }
+  }, [id]);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -24,6 +52,25 @@ export default function PropertyDetails() {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const handleApplySimulation = (sim: FinancingSimulation) => {
+    const formattedFirst = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(sim.firstInstallment);
+    const formattedDown = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(sim.downPayment);
+    const formattedLoan = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(sim.loanAmount);
+    
+    setFormData(prev => ({
+      ...prev,
+      message: `Olá! Tenho interesse no imóvel ${property?.code || ''} (${property?.title || ''}). Gostaria de simular as condições de financiamento com entrada de ${formattedDown} (${sim.downPaymentPercent}%) e saldo devedor de ${formattedLoan} em ${sim.termYears} anos (${sim.termMonths} meses) pela Tabela ${sim.amortizationSystem} (estimativa de parcela: ${formattedFirst}/mês).`
+    }));
+  };
+
+  if (loadingProperty) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -175,6 +222,19 @@ export default function PropertyDetails() {
                   {condominiumPrice && <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">Cond: <span className="text-primary">{condominiumPrice}</span></span>}
                   {iptuPrice && <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">IPTU: <span className="text-primary">{iptuPrice}</span></span>}
                 </div>
+                {property.purpose !== 'RENT' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const calc = document.getElementById('financing-calculator-section');
+                      if (calc) calc.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="mt-3 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-accent hover:text-accent-hover transition-all bg-accent/10 hover:bg-accent/20 px-3.5 py-1.5 rounded-full"
+                  >
+                    <Calculator size={13} />
+                    Simular Financiamento
+                  </button>
+                )}
               </div>
             </div>
 
@@ -225,36 +285,25 @@ export default function PropertyDetails() {
               </div>
             </div>
 
-            {/* Map */}
-            <div className="mb-16">
-              <h2 className="text-2xl font-black text-primary mb-8 tracking-tight flex items-center gap-4">
-                <div className="w-12 h-1.5 bg-accent rounded-full" />
-                Localização Privilegiada
-              </h2>
-              <div className="aspect-[21/9] bg-slate-100 rounded-[40px] flex flex-col items-center justify-center text-slate-400 overflow-hidden relative border border-slate-200 group shadow-lg">
-                <img 
-                  src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=1200" 
-                  alt="Map Placeholder"
-                  className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-primary/20 backdrop-blur-[1px] group-hover:backdrop-blur-none transition-all">
-                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-accent shadow-2xl mb-4 group-hover:scale-110 transition-transform">
-                     <MapPin size={32} />
-                   </div>
-                   <div className="glass px-8 py-4 rounded-2xl border border-white/20 text-center shadow-2xl">
-                     <p className="font-black text-primary uppercase tracking-widest text-xs mb-1">Localização Aproximada</p>
-                     <p className="text-primary/70 font-bold text-sm">{property.neighborhood}, {property.city}</p>
-                   </div>
-                </div>
-              </div>
-            </div>
+            {/* Real Estate Financing Calculator */}
+            {property.purpose !== 'RENT' && (
+              <FinancingCalculator
+                propertyPrice={property.price}
+                propertyCode={property.code}
+                propertyTitle={property.title}
+                onApplySimulation={handleApplySimulation}
+              />
+            )}
+
+            {/* Interactive Modern Location Map */}
+            <PropertyLocationMap property={property} />
           </div>
 
           {/* Contact Column (Sticky) */}
           <div className="lg:col-span-4">
             <div className="sticky top-32 space-y-8">
               {/* Form Card */}
-              <div className="bg-primary p-10 rounded-[48px] text-white shadow-2xl relative overflow-hidden">
+              <div id="contact-form-section" className="bg-primary p-10 rounded-[48px] text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/20 blur-[80px] rounded-full" />
                 <h3 className="text-3xl font-black mb-4 relative z-10 tracking-tight leading-tight">Tenho Interesse Exclusivo</h3>
                 <p className="text-slate-400 text-sm mb-10 relative z-10 font-medium">Consultoria personalizada para o seu próximo grande passo.</p>
